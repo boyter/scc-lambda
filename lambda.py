@@ -1,23 +1,25 @@
 import json
-import boto3
-from pathlib import Path
-import subprocess
 import os
+from pathlib import Path
+
+import boto3
 import git
 
+from datetime import datetime, timedelta
+import time
+
+
 s3 = boto3.client('s3')
+bucket_name = 'sloccloccode'
 
 def lambda_handler(event, context):
-    download_scc()
 
-    os.chdir('/tmp')
- 
-    if os.path.exists('/tmp/really-cheap-chatbot') == False:
-        git.exec_command('clone', '--depth=1', 'https://github.com/boyter/really-cheap-chatbot.git', cwd='/tmp')
-    os.system('./scc -f json -o /tmp/github.boyter.really-cheap-chatbot.json really-cheap-chatbot')
+    print(event)
+    
+    # Contains an array containing the params, so ?=something=test it will have something as a key
+    print(event["queryStringParameters"])
 
-    with open("/tmp/github.boyter.really-cheap-chatbot.json", "rb") as f:
-        s3.upload_fileobj(f, "sloccloccode", "github.boyter.really-cheap-chatbot.json")
+    get_process_file()
 
     with open('/tmp/github.boyter.really-cheap-chatbot.json', encoding='utf-8') as f:
         content = f.read()
@@ -36,17 +38,59 @@ def lambda_handler(event, context):
     }
 
 
+def get_process_file():
+    s = boto3.resource('s3')
+    o = s.Object(bucket_name,'github.boyter.really-cheap-chatbot.json')
+    unixtime = s3time_to_unix(o.last_modified)
+
+    diff = int(time.time() - unixtime)
+    if diff < 86400:
+        o.download_file('/tmp/github.boyter.really-cheap-chatbot.json')
+    else:
+        clone_and_process()
+
+
+def clone_and_process():
+    download_scc()
+
+    os.chdir('/tmp')
+ 
+    if os.path.exists('/tmp/really-cheap-chatbot') == False:
+        git.exec_command('clone', '--depth=1', 'https://github.com/boyter/really-cheap-chatbot.git', cwd='/tmp')
+    os.system('./scc -f json -o /tmp/github.boyter.really-cheap-chatbot.json really-cheap-chatbot')
+
+    with open("/tmp/github.boyter.really-cheap-chatbot.json", "rb") as f:
+        s3.upload_fileobj(f, bucket_name, "github.boyter.really-cheap-chatbot.json")
+
+
 def download_scc():
     my_file = Path("/tmp/scc")
     if os.path.exists('/tmp/scc') == False:
         with open('/tmp/scc', 'wb') as f:
-            s3.download_fileobj('sloccloccode', 'scc', f)
+            s3.download_fileobj(bucket_name, 'scc', f)
     os.system('chmod +x /tmp/scc')
 
 
-if __name__ == '__main__':
-    with open('github.boyter.really-cheap-chatbot.json', encoding='utf-8') as f:
-        content = f.read()
+def s3time_to_unix(last_modified):
+    datetime_object = datetime.strptime(str(last_modified).split(' ')[0], '%Y-%m-%d')
+    unixtime = time.mktime(datetime_object.timetuple())
+    return unixtime
 
-    j = json.loads(content)
-    print(sum([x['Lines'] for x in j]))
+
+if __name__ == '__main__':
+    
+    last_modified = '2019-06-22 07:13:19+00:00'
+    unixtime = s3time_to_unix(last_modified)
+
+    diff = int(time.time() - unixtime)
+    print(diff > 86400)
+    if diff < 86400:
+        print('pull from s3 and return')
+    else:
+        print('clone him and reprocess')
+
+
+    # s3 = boto3.resource('s3')
+    # o = s3.Object('sloccloccode','github.boyter.really-cheap-chatbot.json')
+    # print(o.last_modified)
+    # o.download_file('/tmp/github.boyter.really-cheap-chatbot.json')
