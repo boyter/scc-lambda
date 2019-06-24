@@ -151,8 +151,10 @@ def process_path(path):
 
 def clean_string(s):
     valid = string.ascii_lowercase
+    valid += string.digits
     valid += '-'
     valid += '.'
+    valid += '_'
 
     clean = ''
 
