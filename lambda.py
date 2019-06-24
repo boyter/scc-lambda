@@ -5,7 +5,6 @@ import re
 import string
 
 import boto3
-import git
 
 from datetime import datetime, timedelta
 import time
@@ -83,6 +82,8 @@ def get_process_file(filename, url, path):
 
 
 def clone_and_process(filename, url, path):
+    import git
+    
     download_scc()
 
     os.chdir('/tmp')
