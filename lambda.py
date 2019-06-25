@@ -213,6 +213,18 @@ if __name__ == '__main__':
     print(format_count(263804))
     print(format_count(86400))
 
+    print('')
+
+    with open('/home/bboyter/Projects/scc-lambda/tmp.json', encoding='utf-8') as f:
+        content = f.read()
+
+    j = json.loads(content)
+    print('lines: ' + format_count(sum([x['Lines'] for x in j])))
+    print('code: ' + format_count(sum([x['Code'] for x in j])))
+    print('comment: ' + format_count(sum([x['Comment'] for x in j])))
+    print('blank: ' + format_count(sum([x['Blank'] for x in j])))
+    print('complexity: ' + format_count(sum([x['Complexity'] for x in j])))
+
     # s3 = boto3.resource('s3')
     # o = s3.Object('sloccloccode','github.boyter.really-cheap-chatbot.json')
     # print(o.last_modified)
