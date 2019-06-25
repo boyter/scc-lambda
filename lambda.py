@@ -8,7 +8,7 @@ import boto3
 
 from datetime import datetime, timedelta
 import time
-
+import math
 
 s3 = boto3.client('s3')
 bucket_name = 'sloccloccode'
@@ -47,6 +47,8 @@ def lambda_handler(event, context):
         content = f.read()
 
     j = json.loads(content)
+    s = ''
+
     s = format_count(sum([x['Lines'] for x in j]))
 
     text_length = '250'
@@ -186,6 +188,17 @@ def format_count(count):
     return str(count)
 
 
+# EstimateEffort calculate the effort applied using generic COCOMO2 weighted values
+def estimate_effort(slocCount):
+    return float(3.2) * math.pow(float(slocCount)/1000, 1.05) * 1
+
+
+# EstimateCost calculates the cost in dollars applied using generic COCOMO2 weighted values based
+# on the average yearly wage
+def estimate_cost(slocCount, averageWage=56286):
+    return estimate_effort(slocCount) * float(averageWage/12) * float(1.8)
+
+
 if __name__ == '__main__':
     
     # last_modified = '2019-06-22 07:13:19+00:00'
@@ -225,6 +238,8 @@ if __name__ == '__main__':
     print('blank: ' + format_count(sum([x['Blank'] for x in j])))
     print('complexity: ' + format_count(sum([x['Complexity'] for x in j])))
 
+
+    print(format_count(estimate_cost(710)))
     # s3 = boto3.resource('s3')
     # o = s3.Object('sloccloccode','github.boyter.really-cheap-chatbot.json')
     # print(o.last_modified)
