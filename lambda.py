@@ -46,7 +46,6 @@ def lambda_handler(event, context):
     j = json.loads(content)
     title = 'Total lines'
     s = format_count(sum([x['Lines'] for x in j]))
-    
 
     if 'category' in event['queryStringParameters']:
         t = event['queryStringParameters']['category']
@@ -60,7 +59,7 @@ def lambda_handler(event, context):
         elif t == 'lines':
             pass # its the default anyway
         elif t == 'comments':
-            title = 'Comment lines'
+            title = 'Comments'
             s = format_count(sum([x['Comment'] for x in j]))
         elif t == 'cocomo':
             title = 'COCOMO $'
