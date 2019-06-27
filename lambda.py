@@ -200,7 +200,7 @@ def format_count(count):
                 t = t[:t.find('.')]
             return t + y
 
-    return str(count)
+    return str(round(count, 1))
 
 
 # EstimateEffort calculate the effort applied using generic COCOMO2 weighted values
@@ -241,17 +241,19 @@ if __name__ == '__main__':
     print(format_count(263804))
     print(format_count(86400))
 
+    print(format_count(81.99825581739397))
+
     print('')
 
-    with open('/home/bboyter/Projects/scc-lambda/tmp.json', encoding='utf-8') as f:
-        content = f.read()
+    # with open('/home/bboyter/Projects/scc-lambda/tmp.json', encoding='utf-8') as f:
+    #     content = f.read()
 
-    j = json.loads(content)
-    print('lines: ' + format_count(sum([x['Lines'] for x in j])))
-    print('code: ' + format_count(sum([x['Code'] for x in j])))
-    print('comment: ' + format_count(sum([x['Comment'] for x in j])))
-    print('blank: ' + format_count(sum([x['Blank'] for x in j])))
-    print('complexity: ' + format_count(sum([x['Complexity'] for x in j])))
+    # j = json.loads(content)
+    # print('lines: ' + format_count(sum([x['Lines'] for x in j])))
+    # print('code: ' + format_count(sum([x['Code'] for x in j])))
+    # print('comment: ' + format_count(sum([x['Comment'] for x in j])))
+    # print('blank: ' + format_count(sum([x['Blank'] for x in j])))
+    # print('complexity: ' + format_count(sum([x['Complexity'] for x in j])))
 
 
     print(format_count(estimate_cost(710)))
