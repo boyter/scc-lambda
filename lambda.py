@@ -63,7 +63,14 @@ def lambda_handler(event, context):
             s = format_count(sum([x['Comment'] for x in j]))
         elif t == 'cocomo':
             title = 'COCOMO $'
-            s = format_count(estimate_cost(sum([x['Code'] for x in j])))
+            wage = '56286'
+            if 'avg-wage' in event['queryStringParameters']:
+                wage = event['queryStringParameters']['avg-wage']
+
+            if wage.isdigit():
+                s = format_count(estimate_cost(sum([x['Code'] for x in j]), int(wage)))
+            else:
+                s = format_count(estimate_cost(sum([x['Code'] for x in j])))
 
     text_length = '250'
     if len(s) <= 3:
